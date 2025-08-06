@@ -7,22 +7,118 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="converter-container">
+    <form class="converter-container">
+        <h1>Unit Converter</h1>
+        
         <div class="conversion-types">
-
+            <label for="conversion-type">Conversion Type:</label>
+            <select id="conversion-type">
+                <option value="length">Length</option>
+                <option value="weight">Weight</option>
+                <option value="temperature">Temperature</option>
+            </select>
         </div>
 
-        <h1>Unit Converter</h1>
-
-        <h4>Enter the Length to Convert</h4>
-        <input type="number">
+        <h4>Enter the Value to Convert</h4>
+        <input type="number" id="input-value" step="any">
+        
         <h4>Unit to Convert From</h4>
-        <input type="number">
+        <select id="from-unit">
+        </select>
+        
         <h4>Unit to Convert To</h4>
-        <input type="number">
-        <br>
-        <button class="convert-button">Convert</button>
-    </div>
-    
+        <select id="to-unit">
+        </select>
+        
+        <br><br>
+        <button type="button" id="convert-button">Convert</button>
+        
+        <div id="result"></div>
+    </form>
+    <script>
+        // Define all available units with their conversion factors
+        const unitsData = {
+            length: [
+                {name: 'Meter (m)', value: 'meter', factor: 1},
+                {name: 'Kilometer (km)', value: 'kilometer', factor: 1000},
+                {name: 'Centimeter (cm)', value: 'centimeter', factor: 0.01},
+                {name: 'Millimeter (mm)', value: 'millimeter', factor: 0.001},
+                {name: 'Foot (ft)', value: 'foot', factor: 0.3048},
+                {name: 'Inch (in)', value: 'inch', factor: 0.0254},
+                {name: 'Mile (mi)', value: 'mile', factor: 1609.34},
+                {name: 'Yard (yd)', value: 'yard', factor: 0.9144}
+            ],
+            weight: [
+                {name: 'Kilogram (kg)', value: 'kilogram', factor: 1},
+                {name: 'Gram (g)', value: 'gram', factor: 0.001},
+                {name: 'Milligram (mg)', value: 'milligram', factor: 0.000001},
+                {name: 'Pound (lb)', value: 'pound', factor: 0.453592},
+                {name: 'Ounce (oz)', value: 'ounce', factor: 0.0283495},
+            ],
+            temperature: [
+                {name: 'Celsius (°C)', value: 'celsius'},
+                {name: 'Fahrenheit (°F)', value: 'fahrenheit'},
+                {name: 'Kelvin (K)', value: 'kelvin'}
+            ]
+        };
+
+        // Get DOM elements
+        const conversionTypeSelect = document.getElementById('conversion-type');
+        const fromUnitSelect = document.getElementById('from-unit');
+        const toUnitSelect = document.getElementById('to-unit');
+        const inputValue = document.getElementById('input-value');
+        const convertButton = document.getElementById('convert-button');
+        const resultDiv = document.getElementById('result');
+
+        // Function to populate unit selects based on conversion type
+        function populateUnitSelects() {
+            const selectedType = conversionTypeSelect.value;
+            const units = unitsData[selectedType];
+            
+            // Clear existing options
+            fromUnitSelect.innerHTML = '';
+            toUnitSelect.innerHTML = '';
+            
+            // Add new options
+            units.forEach(unit => {
+                const option = document.createElement('option');
+                option.value = unit.value;
+                option.textContent = unit.name;
+                fromUnitSelect.appendChild(option.cloneNode(true));
+                toUnitSelect.appendChild(option);
+            });
+        }
+        
+        convertButton.addEventListener("click", async () =>{
+            const conversionData = {
+                type: conversionTypeSelect.value,
+                from: fromUnitSelect.value,
+                to: toUnitSelect.value,
+                value: inputValue.value,
+                //timestamp: new Date().toISOString()
+            };
+
+            try {
+                // Insert server here
+                const response = fetch('http://localhost:3000/api/units', {
+                    method : 'POST',
+                    headers : {
+                        'Content-Type' : 'application/json',
+                    },
+                    body : JSON.stringify(conversionData)
+                })
+                
+                if (!response.ok) throw new Error('Network response was not ok');
+        
+                const result = await response.json();
+                console.log('Conversion logged:', result);
+            } catch (error) {
+                console.error('Error logging conversion:', error);
+            }
+        })
+
+        // Main
+        populateUnitSelects();
+    </script>   
 </body>
 </html>
